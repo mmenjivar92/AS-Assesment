@@ -4,7 +4,7 @@ import datetime
 import configparser
 
 
-def incrementalLoad():
+def incrementalLoad(s3,spark):
     """
     Steps
     Incremental Load:\n
@@ -15,14 +15,6 @@ def incrementalLoad():
     5. Union current dimension with new values\n
     6. Write new version of the dimension to S3 Bucket => Presentation Layer
     """
-
-    # Reading Config file
-    config = configparser.ConfigParser()
-    config.read('../dl.cfg')
-    s3 = config.get('S3', 'BUCKET')
-
-    # Getting Spark Session
-    spark = create_spark_session()
 
     #Reading Datasets
     currentDim = spark.read.parquet(s3 + "/presentation_layer/dim_department")
@@ -47,20 +39,13 @@ def incrementalLoad():
         .write.parquet(s3 + "/presentation_layer/dim_department", mode="overwrite")
 
 
-def fullLoad():
+def fullLoad(s3,spark):
     """
         Steps - Incremental Load:\n
         1. Get all the distinct values from the stagingProducts DataFrame\n
         2. Generate Unique Identifier\n
         3. Write dimension to S3 Bucket => Presentation Layer\n
     """
-    # Reading Config file
-    config = configparser.ConfigParser()
-    config.read('../dl.cfg')
-    s3 = config.get('S3', 'BUCKET')
-
-    # Getting Spark Session
-    spark = create_spark_session()
 
     #Reading Datasets
     stagingProducts= spark.read.parquet(s3 + "/staging_layer/products")
@@ -79,7 +64,12 @@ if __name__ == "__main__":
     config.read('../dl.cfg')
     loadType = config.get('LOAD', 'LOADTYPE')
 
-    if loadType=="full":
-        fullLoad()
+    s3 = config.get('S3', 'BUCKET')
+
+    # Getting Spark Session
+    spark = create_spark_session()
+
+    if loadType == "full":
+        fullLoad(s3,spark)
     else:
-        incrementalLoad()
+        incrementalLoad(s3,spark)
