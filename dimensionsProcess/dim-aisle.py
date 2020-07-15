@@ -58,9 +58,9 @@ def incrementalLoad(s3,spark):
 
     newDimAisles = currentDimAisle.union(newAisles)
 
-    newDimAisles.write.parquet(s3 + "/presentation_layer/dim_aisle_tmp", mode="overwrite")
+    newDimAisles.write.parquet(s3 + "/tmp/dim_aisle_tmp", mode="overwrite")
 
-    spark.read.parquet(s3 + "/presentation_layer/dim_aisle_tmp") \
+    spark.read.parquet(s3 + "/tmp/dim_aisle_tmp") \
         .write.parquet(s3 + "/presentation_layer/dim_aisle", mode="overwrite")
 
 
