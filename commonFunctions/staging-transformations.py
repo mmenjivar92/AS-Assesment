@@ -7,7 +7,7 @@ import configparser
 def main():
     """
     Summary:
-    Entry point of the staging etl
+    Staging ETL
     """
 
     # Reading Config file
@@ -22,7 +22,7 @@ def main():
 
     # Reading Datasets
     print("Reading Datasets")
-    x = spark.read.option("header", True).csv(s3+'/raw_layer/dataset.csv')
+    x= x= spark.read.option("header",True).option("encoding", "cp1252").option("sep", ",").option("escape", "\"").csv(s3+"/raw_layer/dataset.csv")
     products = spark.read.option("multiline", "true").json(s3+"/raw_layer/products.json")
 
     # Exploding Order Details
