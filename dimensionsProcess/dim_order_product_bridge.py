@@ -1,6 +1,8 @@
 from commonFunctions.helpers import create_spark_session
-from pyspark.sql.functions import *
+from pyspark.sql.functions import col
 import configparser
+from pyspark.sql.types import IntegerType
+
 
 
 def fullLoad(s3,spark):
@@ -33,7 +35,9 @@ def fullLoad(s3,spark):
         .drop("PRODUCT", "AISLE", "aisle_name", "product_name", "inserted_date", "another_aisle_key", "aisles") \
         .fillna({'aisle_key': '-1', 'product_key': '-1'})\
         .withColumnRenamed("ORDER_ID", "order_key") \
-        .withColumnRenamed("ADD_TO_CART_ORDER", "add_to_cart_order")
+        .withColumnRenamed("ADD_TO_CART_ORDER", "add_to_cart_order_str") \
+        .withColumn("add_to_cart_order", col("add_to_cart_order_str").cast(IntegerType())) \
+        .drop("add_to_cart_order_str")
 
     dimOrderProductBridge.write.parquet(s3 + "/presentation_layer/dim_order_product_bridge")
 
@@ -71,7 +75,9 @@ def incrementalLoad(s3,spark):
         .drop("PRODUCT", "AISLE", "aisle_name", "product_name", "inserted_date", "another_aisle_key", "aisles") \
         .fillna({'aisle_key': '-1', 'product_key': '-1'}) \
         .withColumnRenamed("ORDER_ID", "order_key") \
-        .withColumnRenamed("ADD_TO_CART_ORDER", "add_to_cart_order")
+        .withColumnRenamed("ADD_TO_CART_ORDER", "add_to_cart_order_str") \
+        .withColumn("add_to_cart_order", col("add_to_cart_order_str").cast(IntegerType())) \
+        .drop("add_to_cart_order_str")
         # .show(5,False)
 
     dimOrderProductBridge.union(dimOrderProductBridge).write.parquet(s3 + "/tmp/dim_order_product_bridge_tmp",

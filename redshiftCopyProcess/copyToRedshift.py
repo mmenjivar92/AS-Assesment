@@ -1,6 +1,6 @@
 import configparser
 import psycopg2
-from commonFunctions.copy_queries import copy_table_queries
+from commonFunctions.copy_queries import copy_table_queries,truncate_queries
 
 def load_tables(cur, conn):
     """
@@ -13,6 +13,20 @@ def load_tables(cur, conn):
     No returns
     """
     for query in copy_table_queries:
+        cur.execute(query)
+        conn.commit()
+
+def truncate_tables(cur,conn):
+    """
+    The goal of this function is clean tables in redshift.
+    Reads the querys from the copy_queries.py file and execute them trough a connection here.
+    Parameters:
+    cur (psycopg2.extensions.cursor)      : Connection cursor pointing to the redshift cluster
+    conn (psycopg2.extensions.connection) : Connection pointin to the redshift cluster
+    Returns:
+    No returns
+    """
+    for query in truncate_queries:
         cur.execute(query)
         conn.commit()
 
@@ -31,6 +45,7 @@ def main():
     conn = psycopg2.connect("host={} dbname={} user={} password={} port={}".format(*config['CLUSTER'].values()))
     cur = conn.cursor()
 
+    truncate_tables(cur, conn)
     load_tables(cur, conn)
 
     conn.close()
