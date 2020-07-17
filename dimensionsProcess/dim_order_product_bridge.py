@@ -18,8 +18,8 @@ def fullLoad(s3,spark):
     """
 
     # Reading Datasets
-    dimProduct=spark.read.parquet(s3+"presentation_layer/dim_product")
-    dimAisle=spark.read.parquet(s3+"presentation_layer/dim_aisle")
+    dimProduct=spark.read.parquet(s3+"/presentation_layer/dim_product")
+    dimAisle=spark.read.parquet(s3+"/presentation_layer/dim_aisle")
     stagingOrders = spark.read.parquet(s3 + "/staging_layer/orders")
 
     stagingOrderswithAisle = stagingOrders.join(dimAisle, stagingOrders["AISLES"] == dimAisle["aisle_name"],
@@ -87,6 +87,7 @@ if __name__ == "__main__":
     loadType = config.get('LOAD', 'LOADTYPE')
 
     s3 = config.get('S3', 'BUCKET')
+    print(s3)
 
     # Getting Spark Session
     spark = create_spark_session()
