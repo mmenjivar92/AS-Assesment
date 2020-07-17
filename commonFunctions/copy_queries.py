@@ -31,8 +31,14 @@ fact_order_items_copy = ("""  COPY fact_order_items from '{}'
                            FORMAT AS PARQUET
 """).format(S3+"/presentation_layer/fact_order_items",ARN)
 
+dim_order_product_bride_copy = ("""  COPY dim_order_product_bride from '{}'
+                           iam_role {}
+                           FORMAT AS PARQUET
+""").format(S3+"/presentation_layer/fact_order_items",ARN)
+
 copy_table_queries=[dim_aisle_copy,
               dim_department_copy,
               dim_product_copy,
               dim_user_copy,
-              fact_order_items_copy]
+              fact_order_items_copy,
+              dim_order_product_bride_copy]

@@ -31,7 +31,9 @@ def fullLoad(s3,spark):
         .join(dimProduct, [stagingOrderswithAisle["PRODUCT"] == dimProduct["product_name"],
                            stagingOrderswithAisle["another_aisle_key"] == dimProduct["aisle_key"]], "leftouter") \
         .drop("PRODUCT", "AISLE", "aisle_name", "product_name", "inserted_date", "another_aisle_key", "aisles") \
-        .fillna({'aisle_key': '-1', 'product_key': '-1'})
+        .fillna({'aisle_key': '-1', 'product_key': '-1'})\
+        .withColumnRenamed("ORDER_ID", "order_key") \
+        .withColumnRenamed("ADD_TO_CART_ORDER", "add_to_cart_order")
 
     dimOrderProductBridge.write.parquet(s3 + "/presentation_layer/dim_order_product_bridge")
 
@@ -68,6 +70,8 @@ def incrementalLoad(s3,spark):
                            newOrderswithAisle["another_aisle_key"] == dimProduct["aisle_key"]], "leftouter") \
         .drop("PRODUCT", "AISLE", "aisle_name", "product_name", "inserted_date", "another_aisle_key", "aisles") \
         .fillna({'aisle_key': '-1', 'product_key': '-1'}) \
+        .withColumnRenamed("ORDER_ID", "order_key") \
+        .withColumnRenamed("ADD_TO_CART_ORDER", "add_to_cart_order")
         # .show(5,False)
 
     dimOrderProductBridge.union(dimOrderProductBridge).write.parquet(s3 + "/tmp/dim_order_product_bridge_tmp",
