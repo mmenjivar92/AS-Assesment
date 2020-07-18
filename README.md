@@ -8,7 +8,7 @@ The objective of the project is build a dimensional model to provide insights to
 ### Dimensional Model
 The business requirements have been transformed in the next Kimball Star:
 
-![alt text](readme-resources\dmodel.png)
+![alt text](readme-resources/dmodel.png)
 
 ### Data Dictionary
 #### Dim Department
