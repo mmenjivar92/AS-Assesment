@@ -61,16 +61,16 @@ create table dim_hour(
     period_of_day varchar(20)
 );
 
-insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('0','0am','0','Night');
-insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('1','1am','1','Night');
-insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('2','2am','2','Night');
-insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('3','3am','3','Night');
-insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('4','4am','4','Night');
-insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('5','5am','5','Early morning');
-insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('6','6am','6','Early morning');
-insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('7','7am','7','Early morning');
-insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('8','8am','8','Early morning');
-insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('9','9am','9','Morning');
+insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('00','0am','0','Night');
+insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('01','1am','1','Night');
+insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('02','2am','2','Night');
+insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('03','3am','3','Night');
+insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('04','4am','4','Night');
+insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('05','5am','5','Early morning');
+insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('06','6am','6','Early morning');
+insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('07','7am','7','Early morning');
+insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('08','8am','8','Early morning');
+insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('09','9am','9','Morning');
 insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('10','10am','10','Morning');
 insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('11','11am','11','Late morning');
 insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('12','12pm','12','Afternoon');

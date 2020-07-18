@@ -1,7 +1,7 @@
+from pyspark.sql.types import IntegerType
 from commonFunctions.helpers import create_spark_session
-from pyspark.sql.functions import *
+from pyspark.sql import functions as F
 import configparser
-
 
 def fullLoad(s3,spark):
     """
@@ -37,10 +37,21 @@ def fullLoad(s3,spark):
         .withColumnRenamed("ORDER_ID", "order_key") \
         .withColumnRenamed("USER_ID", "user_key") \
         .withColumnRenamed("ORDER_NUMBER", "order_number") \
-        .withColumnRenamed("ORDER_DOW", "day_key") \
-        .withColumnRenamed("ORDER_HOUR_OF_DAY", "hour_key") \
+        .withColumn("day_key",F.when(F.col("ORDER_DOW")=='Sunday',0)\
+                    .when(F.col("ORDER_DOW")=='Monday',1)\
+                    .when(F.col("ORDER_DOW") == 'Tuesday', 2)\
+                    .when(F.col("ORDER_DOW") == 'Wednesday', 3)\
+                    .when(F.col("ORDER_DOW") == 'Thursday', 4)\
+                    .when(F.col("ORDER_DOW") == 'Friday', 5)\
+                    .when(F.col("ORDER_DOW") == 'Saturday', 6)\
+                    .otherwise(F.col("ORDER_DOW"))) \
+        .drop("ORDER_DOW") \
+        .withColumn("hour_key", F.when(F.col("ORDER_HOUR_OF_DAY") == '24', '00') \
+                    .otherwise(F.col("ORDER_HOUR_OF_DAY"))) \
+        .drop("ORDER_HOUR_OF_DAY") \
         .fillna({'department_key': '-1'}) \
-        .fillna({'aisle_key': '-1'})
+        .fillna({'aisle_key': '-1'})\
+        .select("order_key","user_key","order_number","day_key","hour_key","aisle_key","department_key")
 
     newFact.write.parquet(s3 + "/presentation_layer/fact_order_items", mode="overwrite")
 
@@ -84,10 +95,21 @@ def incrementalLoad(s3,spark):
         .withColumnRenamed("ORDER_ID", "order_key") \
         .withColumnRenamed("USER_ID", "user_key") \
         .withColumnRenamed("ORDER_NUMBER", "order_number") \
-        .withColumnRenamed("ORDER_DOW", "day_key") \
-        .withColumnRenamed("ORDER_HOUR_OF_DAY", "hour_key") \
+        .withColumn("day_key",F.when(F.col("ORDER_DOW")=='Sunday',0)\
+                    .when(F.col("ORDER_DOW")=='Monday',1)\
+                    .when(F.col("ORDER_DOW") == 'Tuesday', 2)\
+                    .when(F.col("ORDER_DOW") == 'Wednesday', 3)\
+                    .when(F.col("ORDER_DOW") == 'Thursday', 4)\
+                    .when(F.col("ORDER_DOW") == 'Friday', 5)\
+                    .when(F.col("ORDER_DOW") == 'Saturday', 6)\
+                    .otherwise(F.col("ORDER_DOW")))\
+        .drop("ORDER_DOW") \
+        .withColumn("hour_key", F.when(F.col("ORDER_HOUR_OF_DAY") == '24', '00')\
+                    .otherwise(F.col("ORDER_HOUR_OF_DAY")))\
+        .drop("ORDER_HOUR_OF_DAY") \
         .fillna({'department_key': '-1'}) \
-        .fillna({'aisle_key': '-1'}).union(currentFact)
+        .fillna({'aisle_key': '-1'}).union(currentFact)\
+        .select("order_key", "user_key", "order_number", "day_key", "hour_key", "aisle_key", "department_key")
 
     newFact.write.parquet(s3 + "/tmp/fact_order_items_tmp", mode="overwrite")
     spark.read.parquet(s3 + "/tmp/fact_order_items_tmp") \
