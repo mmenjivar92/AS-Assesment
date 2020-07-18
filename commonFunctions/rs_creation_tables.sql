@@ -30,7 +30,8 @@ create table fact_order_items(
     day_key VARCHAR(500),
     hour_key VARCHAR(500),
     aisle_key VARCHAR(500),
-    department_key VARCHAR(500)
+    department_key VARCHAR(500),
+    product_key VARCHAR(500)
 );
 
 create table dim_order_product_bridge(
