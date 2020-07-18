@@ -11,7 +11,7 @@ def fullLoad(s3,spark):
 
     Steps
     1. Join SatingOrders with Staging products to get the department
-    2. Read Aisles and Department Dim to get the keys
+    2. Read Aisles, Dim Product and Department Dim to get the keys
     3. Join StagingFactOrderItems with Aisles and Department Dims
     4. Filling not match records whit -1 Key (Undefined)
     5. Write results in S3
@@ -21,17 +21,25 @@ def fullLoad(s3,spark):
     stagingProducts = spark.read.parquet(s3 + "/staging_layer/products")
     dimAisle = spark.read.parquet(s3 + "/presentation_layer/dim_aisle")
     dimDepartments = spark.read.parquet(s3 + "/presentation_layer/dim_department")
+    dimProduct=spark.read.parquet(s3+"/presentation_layer/dim_product")\
+    .withColumnRenamed("aisle_key","product_aisle_key")
 
     StagingFactOrderItems=stagingOrders.join(stagingProducts,stagingOrders["PRODUCT"]==stagingProducts["product_name"],"left")\
-        .drop("product_name","aisle","ADD_TO_CART_ORDER","PRODUCT")
+        .drop("product_name","aisle","ADD_TO_CART_ORDER")\
 
     StagingFactOrderswAisle = StagingFactOrderItems.join(dimAisle,
                                                          StagingFactOrderItems["AISLES"] == dimAisle["aisle_name"],
                                                          "left") \
         .drop("AISLES", "aisle_name", "inserted_date")
 
-    newFact = StagingFactOrderswAisle.join(dimDepartments,
-                                           StagingFactOrderswAisle["department"] == dimDepartments["department_name"],
+    StagingFactOrderswAislewProduct=StagingFactOrderswAisle.join(dimProduct,
+                                                                 [StagingFactOrderswAisle["PRODUCT"] == dimProduct["product_name"],
+                                                                  StagingFactOrderswAisle["aisle_key"] == dimProduct["product_aisle_key"]],
+                                                                 "left")\
+        .drop("PRODUCT","product_name","inserted_date","product_aisle_key")
+
+    newFact = StagingFactOrderswAislewProduct.join(dimDepartments,
+                                           StagingFactOrderswAislewProduct["department"] == dimDepartments["department_name"],
                                            "left") \
         .drop("department_name", "inserted_date", "department") \
         .withColumnRenamed("ORDER_ID", "order_key") \
@@ -50,9 +58,11 @@ def fullLoad(s3,spark):
                     .otherwise(F.col("ORDER_HOUR_OF_DAY"))) \
         .drop("ORDER_HOUR_OF_DAY") \
         .fillna({'department_key': '-1'}) \
-        .fillna({'aisle_key': '-1'})\
-        .select("order_key","user_key","order_number","day_key","hour_key","aisle_key","department_key")
+        .fillna({'aisle_key': '-1'}) \
+        .fillna({'product_key': '-1'}) \
+        .select("order_key","user_key","order_number","day_key","hour_key","aisle_key","department_key","product_key")
 
+    #newFact.show(10,False)
     newFact.write.parquet(s3 + "/presentation_layer/fact_order_items", mode="overwrite")
 
 
@@ -76,20 +86,28 @@ def incrementalLoad(s3,spark):
     stagingProducts = spark.read.parquet(s3 + "/staging_layer/products")
     dimAisle = spark.read.parquet(s3 + "/presentation_layer/dim_aisle")
     dimDepartments = spark.read.parquet(s3 + "/presentation_layer/dim_department")
+    dimProduct=spark.read.parquet(s3+"/presentation_layer/dim_product")\
+        .withColumnRenamed("aisle_key","product_aisle_key")
 
     newOrders = stagingOrders.join(currentFact, stagingOrders["ORDER_ID"] == currentFact["order_key"], "leftanti")
 
     StagingFactOrderItems = newOrders.join(stagingProducts, newOrders["PRODUCT"] == stagingProducts["product_name"],
                                            "left") \
-        .drop("product_name", "aisle", "ADD_TO_CART_ORDER", "PRODUCT")
+        .drop("product_name", "aisle", "ADD_TO_CART_ORDER")
 
     StagingFactOrderswAisle = StagingFactOrderItems.join(dimAisle,
                                                          StagingFactOrderItems["AISLES"] == dimAisle["aisle_name"],
                                                          "left") \
         .drop("AISLES", "aisle_name", "inserted_date")
 
-    newFact = StagingFactOrderswAisle.join(dimDepartments,
-                                           StagingFactOrderswAisle["department"] == dimDepartments["department_name"],
+    StagingFactOrderswAislewProduct=StagingFactOrderswAisle.join(dimProduct,
+                                                                 [StagingFactOrderswAisle["PRODUCT"] == dimProduct["product_name"],
+                                                                  StagingFactOrderswAisle["aisle_key"] == dimProduct["product_aisle_key"]],
+                                                                 "left")\
+        .drop("PRODUCT","product_name","inserted_date","product_aisle_key")
+
+    newFact = StagingFactOrderswAislewProduct.join(dimDepartments,
+                                           StagingFactOrderswAislewProduct["department"] == dimDepartments["department_name"],
                                            "left") \
         .drop("department_name", "inserted_date", "department") \
         .withColumnRenamed("ORDER_ID", "order_key") \
@@ -108,8 +126,9 @@ def incrementalLoad(s3,spark):
                     .otherwise(F.col("ORDER_HOUR_OF_DAY")))\
         .drop("ORDER_HOUR_OF_DAY") \
         .fillna({'department_key': '-1'}) \
-        .fillna({'aisle_key': '-1'}).union(currentFact)\
-        .select("order_key", "user_key", "order_number", "day_key", "hour_key", "aisle_key", "department_key")
+        .fillna({'aisle_key': '-1'}).union(currentFact) \
+        .fillna({'product_key': '-1'}) \
+        .select("order_key", "user_key", "order_number", "day_key", "hour_key", "aisle_key", "department_key","product_key")
 
     newFact.write.parquet(s3 + "/tmp/fact_order_items_tmp", mode="overwrite")
     spark.read.parquet(s3 + "/tmp/fact_order_items_tmp") \

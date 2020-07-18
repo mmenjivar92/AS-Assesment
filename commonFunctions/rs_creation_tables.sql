@@ -1,4 +1,3 @@
-/*To be executed in a redshift cluster*/
 create table dim_aisle(
 	aisle_key VARCHAR(100) PRIMARY KEY,
     aisle_name VARCHAR(500),
@@ -13,32 +12,16 @@ create table dim_department(
 
 create table dim_product(
 	product_key VARCHAR(100),
-    aisle_key VARCHAR(100),
+    aisle_key VARCHAR(100) DISTKEY,
     product_name VARCHAR(500),
-    inserted_date date
+    inserted_date date,
+    PRIMARY KEY (product_key,aisle_key),
+    FOREIGN KEY(aisle_key) REFERENCES dim_aisle(aisle_key)
 );
 
 create table dim_user(
 	user_key VARCHAR(100) PRIMARY KEY,
     inserted_date date
-);
-
-create table fact_order_items(
-	order_key VARCHAR(500),
-    user_key VARCHAR(500),
-    order_number VARCHAR(500),
-    day_key VARCHAR(500),
-    hour_key VARCHAR(500),
-    aisle_key VARCHAR(500),
-    department_key VARCHAR(500),
-    product_key VARCHAR(500)
-);
-
-create table dim_order_product_bridge(
-	order_key VARCHAR(500),
-    product_key VARCHAR(500),
-    aisle_key VARCHAR(100),
-    add_to_cart_order INTEGER
 );
 
 create table dim_day(
@@ -86,3 +69,34 @@ insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_
 insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('21','9pm','21','Night');
 insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('22','10pm','22','Night');
 insert into dim_hour(hour_key, twelve_hour_value, twentyfour_hour_value, period_of_day) VALUES ('23','11pm','23','Night');
+
+
+create table fact_order_items(
+	order_key VARCHAR(500),
+    user_key VARCHAR(500),
+    order_number VARCHAR(500),
+    day_key VARCHAR(500),
+    hour_key VARCHAR(500),
+    aisle_key VARCHAR(500),
+    department_key VARCHAR(500),
+    product_key VARCHAR(500),
+    PRIMARY KEY (order_key,aisle_key,product_key),
+    FOREIGN KEY (user_key) REFERENCES dim_user(user_key),
+    FOREIGN KEY (day_key) REFERENCES dim_day(day_key),
+    FOREIGN KEY (hour_key) REFERENCES dim_hour(hour_key),
+    FOREIGN KEY (aisle_key) REFERENCES dim_aisle(aisle_key),
+    FOREIGN KEY (department_key) REFERENCES dim_department(department_key),
+    FOREIGN KEY (product_key,aisle_key) REFERENCES dim_product(product_key,aisle_key)
+                             )
+    DISTKEY(aisle_key)
+;
+
+create table dim_order_product_bridge(
+	order_key VARCHAR(500),
+    product_key VARCHAR(500),
+    aisle_key VARCHAR(100) DISTKEY,
+    add_to_cart_order INTEGER,
+    PRIMARY KEY (order_key,product_key),
+    FOREIGN KEY (order_key,product_key,aisle_key) REFERENCES fact_order_items(order_key,product_key,aisle_key),
+    FOREIGN KEY (product_key,aisle_key) REFERENCES dim_product(product_key,aisle_key)
+);
