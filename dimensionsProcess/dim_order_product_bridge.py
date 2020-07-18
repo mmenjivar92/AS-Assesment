@@ -39,7 +39,7 @@ def fullLoad(s3,spark):
         .withColumn("add_to_cart_order", col("add_to_cart_order_str").cast(IntegerType())) \
         .drop("add_to_cart_order_str")
 
-    dimOrderProductBridge.write.parquet(s3 + "/presentation_layer/dim_order_product_bridge")
+    dimOrderProductBridge.write.parquet(s3 + "/presentation_layer/dim_order_product_bridge", mode="overwrite")
 
 def incrementalLoad(s3,spark):
     """

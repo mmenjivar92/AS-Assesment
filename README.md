@@ -9,7 +9,7 @@ The objective of the project is build a dimensional model to provide insights to
 
 <a name="important-links"></a>
 ## Important Links
- - [PowerBi Dashboard](https://app.powerbi.com/view?r=eyJrIjoiNWUxYWY1ZWEtNjBmMi00OThmLWE2MjUtYmFhZjYwMTg0NjI5IiwidCI6ImRlNTIzZmMwLWNjNTctNGFlNS04YzhjLTAxZWFkMjEyYWIzMyJ9)
+ - [PowerBi Dashboard](https://app.powerbi.com/view?r=eyJrIjoiNWUxYWY1ZWEtNjBmMi00OThmLWE2MjUtYmFhZjYwMTg0NjI5IiwidCI6ImRlNTIzZmMwLWNjNTctNGFlNS04YzhjLTAxZWFkMjEyYWIzMyJ9&pageName=ReportSection39315b7f5918d041c2ba)
  - [Google Drive Resources Folder](#)
 
 <a name="about-the-data-model"></a>
@@ -146,4 +146,70 @@ Fact-less Fact Table, to store and join all the related data of an order.
 
 ## Data Pipeline
 
+### DAG and Task Example
+The tool chosen for schedule the etl processes, manage tasks dependencies, retries. logs and security is Apache Airflow, please find more about the tool [here](https://airflow.apache.org/).
+ 
+![alt text](readme-resources/pipeline.PNG)
+
+All the steps are using the *Airflow Spark Submit Operator*. The operator is in charge to send the .py script to the spark cluster managing the connection trough airflow. Let's see an example of a task implemented:
+
+```python
+staging_layer=SparkSubmitOperator(
+	task_id='staging_layer',
+	application = '/home/mmenjivar/SA-Assesment/commonFunctions/staging-transformations.py',
+	conn_id = 'spark-local',
+	py_files='/home/mmenjivar/SA-Assesment/commonFunctions.zip',
+	dag = dag,	
+)
+```
+- **Task Id:** Unique name of the task in the Airflow DAG (Direct Acyclic Graph)
+- **Application:** Python Script to send to Spark Cluster
+- **Conn Id (Connection Id):** Spark Cluster connection created in the airflow administration
+- **Py Files:** Additional resources the script needs to run
+- **DAG:** Name of the DAG you want to assign the task
+
+### Task Dependencies
+As it's shown in the diagram, Airflow is very useful to handle dependencies in task like *Don't start if the task B hasn't finished*. The dependencies in the DAG are:
+
+- **dim_order_product_bridge:** dim_product, dim_aisle, fact_order_items
+- **dim_aisle:** staging_layer
+- **dim_department:** staging_layer
+- **dim_product:** dim_aisle, staging_layer
+- **dim_user:** staging_layer
+- **fact_order_items:** dim_aisle, dim_department, dim_user, dim_product
+- **copy_to_redshift:** dim_order_product_bridge
+
 ## How to deploy
+####Requirements:
+- Python 2.7 or major
+- Airflow 1.10.2 or major
+- Spark Cluster 2.x
+- Redshift Cluster
+- S3 Bucket configured
+
+#### Steps
+1. Copy the project folders to the server running Airflow
+2. Complete the [configuration file](dl.cfg) with your credentials.
+3. If you move the [configuration file](dl.cfg) you may need to update the reference in the .py files
+4. Copy the [Dag File](as-assesment-dag.py) to the *airflow/dags* folder, update the .py location and the connection id of the Spark Cluster if is needed
+5. Create the Spark Connection in the Airflow admin interface
+6. Turn on the DAG
+
+#### Demo VirtualBox
+For demo purposes I've configured an Ubuntu image running all the tools you need to see the dag in action, please find the download link in the [Important Links Section](#important-links).
+
+#####Requirements:
+- Oracle Virtual Box 6.1
+- 32Gb Ram
+- 30Gb HDD Free Space
+
+##### Running Airflow
+- Login in the user *mmenjivar* with the pass *114i2012mm10020*
+- Start airflow webserver:
+     ```> airflow webserver```
+- Start airflow scheduler:
+     ```> airflow scheduler```
+- Access Airflow with the addres: http://localhost:8080/
+- Enjoy the views!
+
+![alt text](readme-resources/airflow.PNG)
