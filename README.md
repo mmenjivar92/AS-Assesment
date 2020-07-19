@@ -40,6 +40,7 @@ The objective of the project is build a dimensional model to provide insights to
 ## Important Links
  - [PowerBi Dashboard](https://app.powerbi.com/view?r=eyJrIjoiNWUxYWY1ZWEtNjBmMi00OThmLWE2MjUtYmFhZjYwMTg0NjI5IiwidCI6ImRlNTIzZmMwLWNjNTctNGFlNS04YzhjLTAxZWFkMjEyYWIzMyJ9&pageName=ReportSection39315b7f5918d041c2ba)
  - [Drive Resources Folder](https://tiuesedusv-my.sharepoint.com/:f:/g/personal/marlon_menjivar_ti_ues_edu_sv/EuKYgWRbYR5Hl7XL02GBvg4BmJMpBa3eqFEeBhm_jgOTpg?e=GgfK69)
+ - [Spark Reference] (https://spark.apache.org/) for massive parallel data processing with high scalability
 
 <a name="about-the-data-model"></a>
 ## About the Data Model
