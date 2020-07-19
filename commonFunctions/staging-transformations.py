@@ -14,6 +14,8 @@ def main():
     config = configparser.ConfigParser()
     config.read('../dl.cfg')
     s3 = config.get('S3', 'BUCKET')
+    raw_orders=config.get('RAWFILES', 'ORDERS')
+    raw_products=config.get('RAWFILES', 'PRODUCTS')
 
     # Getting Spark Session
     spark = create_spark_session()
@@ -22,8 +24,8 @@ def main():
 
     # Reading Datasets
     print("Reading Datasets")
-    x= x= spark.read.option("header",True).option("encoding", "cp1252").option("sep", ",").option("escape", "\"").csv(s3+"/raw_layer/dataset.csv")
-    products = spark.read.option("multiline", "true").json(s3+"/raw_layer/products.json")
+    x= spark.read.option("header",True).option("encoding", "cp1252").option("sep", ",").option("escape", "\"").csv(s3+"/raw_layer/"+raw_orders)
+    products = spark.read.option("multiline", "true").json(s3+"/raw_layer/"+raw_products)
 
     # Exploding Order Details
     print("Exploding Order Details")

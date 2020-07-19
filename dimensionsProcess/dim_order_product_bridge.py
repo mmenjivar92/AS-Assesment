@@ -60,7 +60,7 @@ def incrementalLoad(s3,spark):
     currentFactOrders = spark.read.parquet(s3 + "/presentation_layer/fact_order_items").select("order_key").distinct()
     stagingOrders = spark.read.parquet(s3 + "/staging_layer/orders")
     dimAisle = spark.read.parquet(s3 + "/presentation_layer/dim_aisle")
-    dimProduct=spark.read.parquet(s3+"presentation_layer/dim_product")
+    dimProduct=spark.read.parquet(s3+"/presentation_layer/dim_product")
 
     newOrders = stagingOrders.join(currentFactOrders, stagingOrders["ORDER_ID"] == currentFactOrders["order_key"],
                                    "leftanti")
